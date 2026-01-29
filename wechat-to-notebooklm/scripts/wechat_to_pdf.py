@@ -141,9 +141,9 @@ async def fetch_article(url, timeout, scroll, max_scroll_ms, step_px, pause_ms, 
             await auto_scroll(page, max_scroll_ms, step_px, pause_ms)
             await page.wait_for_load_state("networkidle")
 
-        title = (await page.text_content("#activity-name")) or "Untitled"
-        author = (await page.text_content("#js_name")) or ""
-        date = (await page.text_content("#publish_time")) or ""
+        title = ((await page.text_content("#activity-name")) or "Untitled").strip()
+        author = ((await page.text_content("#js_name")) or "").strip()
+        date = ((await page.text_content("#publish_time")) or "").strip()
 
         body_html = await page.inner_html("#js_content")
 
@@ -152,7 +152,7 @@ async def fetch_article(url, timeout, scroll, max_scroll_ms, step_px, pause_ms, 
         for tag in soup.find_all(["script", "style"]):
             tag.decompose()
 
-        html = build_html(title.strip(), author.strip(), date.strip(), str(normalize_images(soup)))
+        html = build_html(title, author, date, str(normalize_images(soup)))
 
         # Render clean content-only page to PDF
         content_page = await browser.new_page()
@@ -164,7 +164,7 @@ async def fetch_article(url, timeout, scroll, max_scroll_ms, step_px, pause_ms, 
         )
 
         await browser.close()
-        return pdf_bytes, title.strip()
+        return pdf_bytes, title
 
 
 async def main():
